@@ -1,0 +1,22 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+}
+
+.title-bar {
+  -webkit-app-region: drag;
+  height: 30px;
+  background-color: #3c3c3c;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+}
+
+.drag-region {
+  flex: 1;
+  user-select: none;
+  color: white;
+}

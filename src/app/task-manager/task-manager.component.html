@@ -1,0 +1,159 @@
+<!-- task-manager.component.html -->
+<div class="task-manager">
+  <h1>🗂️ Task Manager</h1>
+
+  <!-- Add New Task -->
+  <div class="add-task">
+    <input
+      type="text"
+      [(ngModel)]="newTaskTitle"
+      placeholder="New Task Title"
+    />
+    <select [(ngModel)]="newTaskPriority">
+      <option value="high">🔴 High</option>
+      <option value="medium">🟡 Medium</option>
+      <option value="low">🟢 Low</option>
+    </select>
+    <button (click)="addTask(newTaskTitle, newTaskPriority)">
+      ➕ Add Task
+    </button>
+  </div>
+
+  <!-- Task List -->
+  <div cdkDropList (cdkDropListDropped)="dropTask($event)" class="task-list">
+    <div
+      class="task"
+      *ngFor="let task of tasks$ | async; let i = index"
+      cdkDrag
+    >
+      <div class="task-header">
+        <input
+          type="checkbox"
+          [checked]="task.completed"
+          (change)="toggleTaskCompletion(task.id)"
+        />
+        <!-- Display Mode -->
+        <ng-container *ngIf="editingTaskId !== task.id; else editTaskTemplate">
+          <span
+            [ngClass]="{ completed: task.completed }"
+            (click)="toggleSubtasks(task.id)"
+          >
+            {{ task.title }}
+            <span [ngClass]="task.priority">{{
+              task.priority | titlecase
+            }}</span>
+          </span>
+        </ng-container>
+        <!-- Edit Mode -->
+        <ng-template #editTaskTemplate>
+          <input
+            type="text"
+            [(ngModel)]="editingTaskTitle"
+            placeholder="Edit Task Title"
+          />
+          <select [(ngModel)]="editingTaskPriority">
+            <option value="high">🔴 High</option>
+            <option value="medium">🟡 Medium</option>
+            <option value="low">🟢 Low</option>
+          </select>
+        </ng-template>
+
+        <span class="actions">
+          <button (click)="editTask(task)">
+            <ng-container *ngIf="editingTaskId === task.id">💾</ng-container>
+            <ng-container *ngIf="editingTaskId !== task.id">✏️</ng-container>
+          </button>
+          <button (click)="deleteTask(task.id)">🗑️</button>
+        </span>
+      </div>
+
+      <!-- Subtasks -->
+      <div
+        class="subtasks"
+        *ngIf="expandedTasks.has(task.id)"
+        cdkDropList
+        (cdkDropListDropped)="dropSubtasks(task, $event)"
+      >
+        <div
+          class="subtask"
+          *ngFor="let subtask of task.subtasks; let j = index"
+          cdkDrag
+        >
+          <input
+            type="checkbox"
+            [checked]="subtask.completed"
+            (change)="toggleSubtaskCompletion(task.id, subtask.id)"
+          />
+          <!-- Display Mode -->
+          <ng-container
+            *ngIf="
+              editingSubtaskId[task.id] !== subtask.id;
+              else editSubtaskTemplate
+            "
+          >
+            <span [ngClass]="{ completed: subtask.completed }">
+              {{ subtask.title }}
+              <!-- -
+              <span [ngClass]="subtask.priority">{{
+                subtask.priority | titlecase
+              }}</span> -->
+            </span>
+          </ng-container>
+          <!-- Edit Mode -->
+          <ng-template #editSubtaskTemplate>
+            <div class="add-subtask">
+              <input
+                type="text"
+                [(ngModel)]="editingSubtaskTitle[task.id]"
+                placeholder="Edit Subtask Title"
+              />
+              <select [(ngModel)]="editingSubtaskPriority[task.id]">
+                <option value="high">🔴 High</option>
+                <option value="medium">🟡 Medium</option>
+                <option value="low">🟢 Low</option>
+              </select>
+            </div>
+          </ng-template>
+          <span class="actions">
+            <button (click)="editSubtask(task.id, subtask)">
+              <ng-container *ngIf="editingSubtaskId[task.id] === subtask.id"
+                >💾</ng-container
+              >
+              <ng-container *ngIf="editingSubtaskId[task.id] !== subtask.id"
+                >✏️</ng-container
+              >
+            </button>
+            <button (click)="deleteSubtask(task.id, subtask.id)">🗑️</button>
+            <button
+              (click)="promoteSubtaskToTask(task.id, subtask.id)"
+              title="Promote Subtask"
+            >
+              🔼
+            </button>
+          </span>
+        </div>
+      </div>
+
+      <!-- Add Subtask -->
+      <div class="add-subtask">
+        <input
+          type="text"
+          [(ngModel)]="newSubtaskTitle[task.id]"
+          placeholder="New Subtask Title"
+        />
+        <button (click)="addSubtask(task.id, newSubtaskTitle[task.id])">
+          ➕ Add Subtask
+        </button>
+      </div>
+
+      <!-- Generate Subtasks -->
+      <button
+        (click)="generateSubtasks(task.title, task.id)"
+        [disabled]="(loadingTaskId$ | async) === task.id"
+      >
+        🧠 Generate Subtasks
+      </button>
+      <span *ngIf="(loadingTaskId$ | async) === task.id">⏳ Generating...</span>
+    </div>
+  </div>
+</div>

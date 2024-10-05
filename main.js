@@ -1,18 +1,21 @@
+// main.js
 const { app, BrowserWindow } = require("electron");
 const path = require("path");
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
-    width: 800,
+    width: 300,
     height: 600,
+    frame: false,
+    transparent: true,
     webPreferences: {
-      preload: path.join(__dirname, "preload.js"), // Define your preload.js if required
-      nodeIntegration: true, // Consider security best practices here
-      contextIsolation: false,
+      preload: path.join(__dirname, "preload.js"),
+      nodeIntegration: false,
+      contextIsolation: true,
     },
   });
 
-  mainWindow.loadURL("http://localhost:4200"); // URL of Angular dev server
+  mainWindow.loadURL("http://localhost:4200");
 }
 
 app.on("ready", createWindow);

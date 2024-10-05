@@ -35,6 +35,7 @@
         <!-- Display Mode -->
         <ng-container *ngIf="editingTaskId !== task.id; else editTaskTemplate">
           <span
+            class="task-name"
             [ngClass]="{ completed: task.completed }"
             (click)="toggleSubtasks(task.id)"
           >

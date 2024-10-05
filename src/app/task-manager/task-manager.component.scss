@@ -71,6 +71,7 @@
         display: flex;
         align-items: center;
         gap: 10px;
+        flex-wrap: wrap;
 
         input[type='checkbox'] {
           transform: scale(1.2);
@@ -317,4 +318,8 @@
     flex-direction: column;
   }
 
+}
+
+.task-name {
+  flex-wrap: wrap;
 }

@@ -20,8 +20,9 @@ export class TaskManagerService {
   private async loadTasks() {
     const allTasks = await this.store.getAllTasks();
     if (allTasks.length > 0) {
-      this.nextId = Math.max(...allTasks.map(task => task.id)) + 1;
-      this.tasksSubject.next(allTasks);
+      this.nextId = Math.max(...allTasks.map((task) => task.id)) + 1;
+      const sortedTasks = allTasks.sort((a, b) => a.position - b.position);
+      this.tasksSubject.next(sortedTasks);
     }
   }
 
@@ -34,6 +35,7 @@ export class TaskManagerService {
     dueDate: Date | null,
     priority: 'high' | 'medium' | 'low'
   ) {
+    const currentTasks = this.tasksSubject.getValue();
     const newTask: Task = {
       id: this.nextId++,
       title,
@@ -41,8 +43,9 @@ export class TaskManagerService {
       dueDate,
       priority,
       completed: false,
+      position: currentTasks.length,
     };
-    this.tasksSubject.next([...this.tasksSubject.getValue(), newTask]);
+    this.tasksSubject.next([...currentTasks, newTask]);
     await this.store.addTask(newTask);
     this.toggleSubtasks(newTask.id);
   }
@@ -52,13 +55,15 @@ export class TaskManagerService {
     newTitle: string,
     newPriority: 'high' | 'medium' | 'low'
   ) {
-    const updatedTasks = this.tasksSubject.getValue().map((task) =>
-      task.id === taskId
-        ? { ...task, title: newTitle, priority: newPriority }
-        : task
-    );
+    const updatedTasks = this.tasksSubject
+      .getValue()
+      .map((task) =>
+        task.id === taskId
+          ? { ...task, title: newTitle, priority: newPriority }
+          : task
+      );
     this.tasksSubject.next(updatedTasks);
-    const updatedTask = updatedTasks.find(task => task.id === taskId);
+    const updatedTask = updatedTasks.find((task) => task.id === taskId);
     if (updatedTask) {
       await this.saveTask(updatedTask);
     }
@@ -74,6 +79,7 @@ export class TaskManagerService {
           dueDate: null,
           priority: 'medium',
           completed: false,
+          position: task.subtasks.length,
         };
         task.subtasks.push(newSubtask);
         this.store.updateTask(task);
@@ -126,17 +132,22 @@ export class TaskManagerService {
   }
 
   public async toggleTaskCompletion(taskId: number) {
-    const updatedTasks = this.tasksSubject.getValue().map((task) =>
-      task.id === taskId ? { ...task, completed: !task.completed } : task
-    );
+    const updatedTasks = this.tasksSubject
+      .getValue()
+      .map((task) =>
+        task.id === taskId ? { ...task, completed: !task.completed } : task
+      );
     this.tasksSubject.next(updatedTasks);
-    const updatedTask = updatedTasks.find(task => task.id === taskId);
+    const updatedTask = updatedTasks.find((task) => task.id === taskId);
     if (updatedTask) {
       await this.store.updateTask(updatedTask);
     }
   }
 
-  public async toggleSubtaskCompletion(parentTaskId: number, subtaskId: number) {
+  public async toggleSubtaskCompletion(
+    parentTaskId: number,
+    subtaskId: number
+  ) {
     const updatedTasks = this.tasksSubject.getValue().map((task) => {
       if (task.id === parentTaskId) {
         task.subtasks = task.subtasks.map((subtask) =>
@@ -152,8 +163,14 @@ export class TaskManagerService {
   }
 
   public async reorderTasks(newOrder: Task[]) {
-    this.tasksSubject.next(newOrder);
-    for (const task of newOrder) {
+    const updatedTasks = newOrder.map((task, index) => ({
+      ...task,
+      position: index,
+    }));
+
+    this.tasksSubject.next(updatedTasks);
+
+    for (const task of updatedTasks) {
       await this.store.updateTask(task);
     }
   }
@@ -161,7 +178,10 @@ export class TaskManagerService {
   public async reorderSubtasks(parentTaskId: number, newSubtasks: Task[]) {
     const updatedTasks = this.tasksSubject.getValue().map((task) => {
       if (task.id === parentTaskId) {
-        task.subtasks = newSubtasks;
+        task.subtasks = newSubtasks.map((subtask, index) => ({
+          ...subtask,
+          position: index,
+        }));
         this.store.updateTask(task);
       }
       return task;
@@ -187,7 +207,7 @@ export class TaskManagerService {
 
     if (subtaskToPromote) {
       const promotedTask: Task = {
-        ...subtaskToPromote as Task,
+        ...(subtaskToPromote as Task),
         dueDate: new Date(),
       };
       updatedTasks.push(promotedTask);

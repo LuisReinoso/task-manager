@@ -6,6 +6,7 @@ export interface Task {
   dueDate: Date | null;
   priority: 'high' | 'medium' | 'low';
   completed: boolean;
+  position: number;
 }
 
 export interface TaskStoreInterface {

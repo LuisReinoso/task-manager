@@ -9,7 +9,7 @@ import {
   TitleCasePipe,
 } from '@angular/common';
 import { OpenAIService } from '../services/openai.service';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, take } from 'rxjs';
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 import { FormsModule } from '@angular/forms';
 import { Task } from '../store/task-store.interface';
@@ -163,14 +163,12 @@ export class TaskManagerComponent {
     if (event.previousIndex === event.currentIndex) {
       return;
     }
-    this.tasks$
-      .subscribe((tasks) => {
-        const updatedTasks = [...tasks];
-        const [movedTask] = updatedTasks.splice(event.previousIndex, 1);
-        updatedTasks.splice(event.currentIndex, 0, movedTask);
-        this.taskManagerService.reorderTasks(updatedTasks);
-      })
-      .unsubscribe();
+    this.tasks$.pipe(take(1)).subscribe((tasks) => {
+      const updatedTasks = [...tasks];
+      const [movedTask] = updatedTasks.splice(event.previousIndex, 1);
+      updatedTasks.splice(event.currentIndex, 0, movedTask);
+      this.taskManagerService.reorderTasks(updatedTasks);
+    });
   }
 
   // Drag and Drop for Subtasks

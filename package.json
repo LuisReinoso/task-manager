@@ -2,13 +2,44 @@
   "name": "task-manager",
   "version": "0.0.0",
   "main": "main.js",
+  "author": {
+    "name": "Luis Reinoso",
+    "email": "lreinoso.calero@gmail.com"
+  },
+  "description": "A task management application built with Electron and Angular",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "electron": "electron .",
-    "build": "ng build --output-path=../dist"
+    "build": "ng build --base-href ./",
+    "electron:build": "cross-env NODE_ENV=production pnpm build && electron-builder build --linux deb"
+  },
+  "build": {
+    "appId": "com.taskmanager.app",
+    "productName": "Task Manager",
+    "directories": {
+      "output": "release/"
+    },
+    "files": [
+      "dist/task-manager/browser/**/*",
+      "package.json",
+      "main.js",
+      "preload.js"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "dist/task-manager/browser/**/*"
+    ],
+    "linux": {
+      "target": [
+        "deb"
+      ],
+      "category": "Utility",
+      "icon": "./src/assets/task-manager-icon.png",
+      "maintainer": "Luis Reinoso <lreinoso.calero@gmail.com>"
+    }
   },
   "private": true,
   "dependencies": {
@@ -33,6 +64,7 @@
     "@angular/compiler-cli": "^17.3.0",
     "@types/jasmine": "~5.1.0",
     "electron": "^32.1.2",
+    "electron-builder": "^25.1.8",
     "jasmine-core": "~5.1.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",

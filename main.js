@@ -15,8 +15,37 @@ function createWindow() {
     },
   });
 
-  mainWindow.loadURL("http://localhost:64300");
+  // Check if we're in development or production
+  const isDev = process.env.NODE_ENV !== "production";
+
+  if (isDev) {
+    // Development: Load from dev server
+    mainWindow.loadURL("http://localhost:64300");
+  } else {
+    // Production: Load from dist directory
+    const indexPath = path.join(__dirname, "dist", "task-manager", "browser");
+    // Log the path for debugging
+    console.log("Loading from:", indexPath);
+
+    // Set the base directory for the application
+    mainWindow.loadFile(path.join(indexPath, "index.html"), {
+      baseURLForDataURL: `file://${indexPath}`,
+    });
+  }
+
+  // Handle external links
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    require("electron").shell.openExternal(url);
+    return { action: "deny" };
+  });
 }
+
+// Add error handling
+app.on("web-contents-created", (event, contents) => {
+  contents.on("did-fail-load", (event, errorCode, errorDescription) => {
+    console.error("Failed to load:", errorCode, errorDescription);
+  });
+});
 
 app.on("ready", createWindow);
 

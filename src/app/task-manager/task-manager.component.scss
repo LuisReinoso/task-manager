@@ -331,12 +331,6 @@
   align-items: flex-end;
   justify-content: flex-end;
   flex-direction: row;
-
-  @media (max-width: 600px) {
-    flex: unset !important;
-    flex-direction: column;
-  }
-
 }
 
 .task-name {

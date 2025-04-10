@@ -1,6 +1,5 @@
 <!-- task-manager.component.html -->
 <div class="task-manager">
-  <h1>🗂️ Task Manager</h1>
 
   <!-- Add New Task -->
   <div class="add-task">
@@ -20,7 +19,7 @@
   </div>
 
   <!-- Task List -->
-  <div cdkDropList cdkScrollable (cdkDropListDropped)="dropTask($event)" class="task-list">
+  <div cdkDropList [cdkDropListAutoScrollDisabled]="false" (cdkDropListDropped)="dropTask($event)" class="task-list">
     <div
       class="task"
       *ngFor="let task of tasks$ | async; let i = index"

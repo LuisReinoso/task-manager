@@ -27,45 +27,48 @@
       cdkDrag
     >
       <div class="task-header">
-        <input
-          type="checkbox"
-          [checked]="task.completed"
-          (change)="toggleTaskCompletion(task.id)"
-        />
-        <!-- Display Mode -->
-        <ng-container *ngIf="editingTaskId !== task.id; else editTaskTemplate">
-          <span
-            class="task-name"
-            [ngClass]="{ completed: task.completed }"
-            (click)="toggleSubtasks(task.id)"
-          >
-            {{ task.title }}
-            <span [ngClass]="task.priority">{{
-              task.priority | titlecase
-            }}</span>
-          </span>
-        </ng-container>
-        <!-- Edit Mode -->
-        <ng-template #editTaskTemplate>
+        <div class="task-main-row">
           <input
-            type="text"
-            [(ngModel)]="editingTaskTitle"
-            placeholder="Edit Task Title"
+            type="checkbox"
+            [checked]="task.completed"
+            (change)="toggleTaskCompletion(task.id)"
           />
-          <select [(ngModel)]="editingTaskPriority">
-            <option value="high">🔴 High</option>
-            <option value="medium">🟡 Medium</option>
-            <option value="low">🟢 Low</option>
-          </select>
-        </ng-template>
-
-        <span class="actions">
-          <button (click)="editTask(task)">
-            <ng-container *ngIf="editingTaskId === task.id">💾</ng-container>
-            <ng-container *ngIf="editingTaskId !== task.id">✏️</ng-container>
-          </button>
-          <button (click)="deleteTask(task.id)">🗑️</button>
-        </span>
+          <!-- Display Mode -->
+          <ng-container *ngIf="editingTaskId !== task.id; else editTaskTemplate">
+            <span
+              class="task-name"
+              [ngClass]="{ completed: task.completed }"
+              (click)="toggleSubtasks(task.id)"
+            >
+              <span [innerHTML]="task.title | urlify"></span>
+              <span [ngClass]="task.priority">
+                {{ priorityEmoji(task.priority) }}
+              </span>
+            </span>
+          </ng-container>
+          <!-- Edit Mode -->
+          <ng-template #editTaskTemplate>
+            <input
+              type="text"
+              [(ngModel)]="editingTaskTitle"
+              placeholder="Edit Task Title"
+            />
+            <select [(ngModel)]="editingTaskPriority">
+              <option value="high">🔴 High</option>
+              <option value="medium">🟡 Medium</option>
+              <option value="low">🟢 Low</option>
+            </select>
+          </ng-template>
+        </div>
+        <div class="actions-row">
+          <span class="actions">
+            <button (click)="editTask(task)">
+              <ng-container *ngIf="editingTaskId === task.id">💾</ng-container>
+              <ng-container *ngIf="editingTaskId !== task.id">✏️</ng-container>
+            </button>
+            <button (click)="deleteTask(task.id)">🗑️</button>
+          </span>
+        </div>
       </div>
 
       <!-- Subtasks -->
@@ -93,7 +96,7 @@
             "
           >
             <span [ngClass]="{ completed: subtask.completed }">
-              {{ subtask.title }}
+              <span [innerHTML]="subtask.title | urlify"></span>
               <!-- -
               <span [ngClass]="subtask.priority">{{
                 subtask.priority | titlecase

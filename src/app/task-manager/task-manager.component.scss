@@ -69,13 +69,49 @@
 
       .task-header {
         display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.2em;
+        width: 100%;
 
-        input[type='checkbox'] {
-          transform: scale(1.2);
-          cursor: pointer;
+        .task-main-row {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          gap: 10px;
+          width: 100%;
+
+          input[type='checkbox'] {
+            transform: scale(1.2);
+            cursor: pointer;
+            margin-right: 8px;
+          }
+
+          .task-name {
+            flex: 1;
+            min-width: 0;
+            white-space: wrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+          }
+        }
+
+        .actions-row {
+          display: flex;
+          flex-direction: row;
+          width: 100%;
+          margin-top: 2px;
+          .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            width: 100%;
+            justify-content: flex-end;
+          }
         }
 
         input[type='text'] {
@@ -89,34 +125,6 @@
           padding: 8px;
           border: 1px solid #ccc;
           border-radius: 4px;
-        }
-
-        span {
-          flex: 1;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: 5px;
-
-          &.completed {
-            text-decoration: line-through;
-            color: #6c757d;
-          }
-
-          .high {
-            color: #dc3545;
-            font-weight: bold;
-          }
-
-          .medium {
-            color: #ffc107;
-            font-weight: bold;
-          }
-
-          .low {
-            color: #28a745;
-            font-weight: bold;
-          }
         }
 
         button {
@@ -322,4 +330,54 @@
 
 .task-name {
   flex-wrap: wrap;
+}
+
+.task-link {
+  color: #007bff;
+  text-decoration: none;
+  background-color: rgba(0, 123, 255, 0.1);
+  border-radius: 4px;
+  padding: 2px 6px;
+  margin: 0 2px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.9em;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-break: break-all;
+
+  &:hover {
+    color: #0056b3;
+    background-color: rgba(0, 123, 255, 0.2);
+    text-decoration: none;
+  }
+
+  // Evitar que los enlaces hereden el estilo de texto tachado cuando la tarea está completada
+  .completed & {
+    text-decoration: line-through;
+    opacity: 0.7;
+  }
+}
+
+// Mejorar el ajuste de texto en las tareas
+.task-name {
+  flex-wrap: wrap;
+  word-break: break-word;
+
+  span {
+    display: inline;
+    max-width: 100%;
+  }
+}
+
+// Mejorar el ajuste de texto en las subtareas
+.subtask span {
+  word-break: break-word;
+
+  span {
+    display: inline;
+    max-width: 100%;
+  }
 }

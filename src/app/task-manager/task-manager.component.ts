@@ -13,6 +13,7 @@ import { BehaviorSubject, Observable, take } from 'rxjs';
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 import { FormsModule } from '@angular/forms';
 import { Task } from '../store/task-store.interface';
+import { UrlifyPipe } from '../pipes/urlify.pipe';
 
 @Component({
   selector: 'app-task-manager',
@@ -28,6 +29,7 @@ import { Task } from '../store/task-store.interface';
     FormsModule,
     DragDropModule,
     TitleCasePipe,
+    UrlifyPipe,
   ],
 })
 export class TaskManagerComponent {
@@ -188,5 +190,19 @@ export class TaskManagerComponent {
 
   public toggleSubtasks(taskId: number) {
     this.taskManagerService.toggleSubtasks(taskId);
+  }
+
+  // Devuelve el emoji correspondiente a la prioridad
+  public priorityEmoji(priority: 'high' | 'medium' | 'low'): string {
+    switch (priority) {
+      case 'high':
+        return '🔴';
+      case 'medium':
+        return '🟡';
+      case 'low':
+        return '🟢';
+      default:
+        return '';
+    }
   }
 }

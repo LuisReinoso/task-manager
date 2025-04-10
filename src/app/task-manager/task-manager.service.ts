@@ -182,10 +182,15 @@ export class TaskManagerService {
           ...subtask,
           position: index,
         }));
-        this.store.updateTask(task);
       }
       return task;
     });
+
+    const parentTask = updatedTasks.find((task) => task.id === parentTaskId);
+    if (parentTask) {
+      await this.store.updateTask(parentTask);
+    }
+
     this.tasksSubject.next(updatedTasks);
   }
 

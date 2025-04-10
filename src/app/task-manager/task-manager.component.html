@@ -20,12 +20,31 @@
   </div>
 
   <!-- Task List -->
-  <div cdkDropList (cdkDropListDropped)="dropTask($event)" class="task-list">
+  <div cdkDropList cdkScrollable (cdkDropListDropped)="dropTask($event)" class="task-list">
     <div
       class="task"
       *ngFor="let task of tasks$ | async; let i = index"
       cdkDrag
     >
+      <ng-template cdkDragPreview>
+        <div class="task drag-preview-task">
+          <div class="task-header">
+            <div class="task-main-row">
+              <input
+                type="checkbox"
+                [checked]="task.completed"
+                disabled
+              />
+              <span
+                class="task-name"
+                [ngClass]="{ completed: task.completed }"
+              >
+                {{ task.title }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </ng-template>
       <div class="task-header">
         <div class="task-main-row">
           <input

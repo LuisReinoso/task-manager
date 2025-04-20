@@ -1,5 +1,5 @@
 // main.js
-const { app, BrowserWindow, dialog } = require("electron");
+const { app, BrowserWindow, dialog, ipcMain, screen } = require("electron");
 const path = require("path");
 
 function createWindow() {
@@ -40,46 +40,100 @@ function createWindow() {
     }).catch((err) => {
       dialog.showErrorBox(
         "Failed to Load UI",
-        `Could not load file: ${filePath}\n\nError code: ${err.code || "unknown"}\nDescription: ${err.message}\n\nPlease check that the Angular build output exists at:\n${filePath}\nand is accessible.`
+        `Could not load file ${filePath}\n\nError code: ${err.code || "unknown"}\nDescription: ${err.message}`
       );
     });
   }
-
-  // Handle external links
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    require("electron").shell.openExternal(url);
-    return { action: "deny" };
-  });
 }
 
-// Add error handling
-app.on("web-contents-created", (event, contents) => {
-  const { dialog } = require("electron");
-  contents.on("did-fail-load", (event, errorCode, errorDescription) => {
-    console.error("Failed to load:", errorCode, errorDescription);
-    dialog.showErrorBox(
-      "Failed to Load UI",
-      `Error code: ${errorCode}
-Description: ${errorDescription}
+let reminderWin = null;
+let reminderInterval = null;
+let currentTaskTitle = '';
 
-process.env.NODE_ENV: ${process.env.NODE_ENV}
-app.isPackaged: ${require("electron").app.isPackaged}
+function createReminderWindow(taskTitle) {
+  const cursorPoint = screen.getCursorScreenPoint();
+  const display = screen.getDisplayNearestPoint(cursorPoint);
+  const displayBounds = display.bounds;
 
-Please check that the Angular build output exists and is accessible.`
-    );
+  // Estimate width based on taskTitle length
+  const baseWidth = 50;
+  const charWidth = 8;
+  const minWidth = 150;
+  const maxWidth = 400;
+  const estimatedWidth = Math.min(maxWidth, Math.max(minWidth, baseWidth + taskTitle.length * charWidth));
+
+  // Calculate position relative to display bounds to ensure window appears on correct screen
+  const x = Math.min(cursorPoint.x + 10, displayBounds.x + displayBounds.width - estimatedWidth - 10);
+  const y = Math.min(cursorPoint.y + 10, displayBounds.y + displayBounds.height - 60); // 50 height + 10 margin
+
+  if (reminderWin) {
+    reminderWin.close();
+    reminderWin = null;
+  }
+  reminderWin = new BrowserWindow({
+    width: estimatedWidth,
+    height: 50,
+    x: x,
+    y: y,
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    focusable: true,
+    resizable: false,
+    movable: true,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
   });
+  reminderWin.loadURL(`data:text/html;charset=utf-8,
+    <html>
+      <body style="margin:0; background:rgba(0,0,0,0.7); color:white; font-family:sans-serif; font-size:14px; display:flex; justify-content:center; align-items:center; height:100vh; -webkit-app-region: drag;">
+        ${taskTitle}
+      </body>
+    </html>`);
+  // Auto close after 5 seconds
+  setTimeout(() => {
+    if (reminderWin) {
+      reminderWin.close();
+      reminderWin = null;
+    }
+  }, 5000);
+}
+
+function startReminder(taskTitle) {
+  currentTaskTitle = taskTitle;
+  if (reminderInterval) {
+    clearInterval(reminderInterval);
+  }
+  createReminderWindow(taskTitle);
+  reminderInterval = setInterval(() => {
+    createReminderWindow(currentTaskTitle);
+  }, 5 * 60 * 1000); // every 5 minutes
+}
+
+function stopReminder() {
+  if (reminderInterval) {
+    clearInterval(reminderInterval);
+    reminderInterval = null;
+  }
+  if (reminderWin) {
+    reminderWin.close();
+    reminderWin = null;
+  }
+}
+
+ipcMain.on('set-current-task', (event, taskTitle) => {
+  startReminder(taskTitle);
 });
 
-app.on("ready", createWindow);
-
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
+ipcMain.on('stop-reminder', () => {
+  stopReminder();
 });
 
-app.on("activate", () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
+app.whenReady().then(createWindow);
+
+app.on('window-all-closed', () => {
+  app.quit();
 });

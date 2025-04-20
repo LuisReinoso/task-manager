@@ -80,6 +80,12 @@
         </div>
         <div class="actions-row">
           <span class="actions">
+            <button class="reminder-btn" (click)="setReminder(task)">
+              ⏰
+            </button>
+            <button class="stop-reminder-btn" *ngIf="currentTask?.id === task.id" (click)="stopReminder()">
+              🛑
+            </button>
             <button (click)="editTask(task)">
               <ng-container *ngIf="editingTaskId === task.id">💾</ng-container>
               <ng-container *ngIf="editingTaskId !== task.id">✏️</ng-container>

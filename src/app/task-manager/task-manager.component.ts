@@ -55,6 +55,8 @@ export class TaskManagerComponent {
   public editingSubtaskPriority: { [key: number]: 'high' | 'medium' | 'low' } =
     {};
 
+  public currentTask: Task | null = null;
+
   constructor(
     private taskManagerService: TaskManagerService,
     private openAIService: OpenAIService
@@ -89,7 +91,6 @@ export class TaskManagerComponent {
       this.editingTaskPriority = task.priority;
     }
   }
-
   public addSubtask(parentTaskId: number, subtaskTitle: string) {
     if (!subtaskTitle.trim()) {
       return;
@@ -192,7 +193,6 @@ export class TaskManagerComponent {
     this.taskManagerService.toggleSubtasks(taskId);
   }
 
-  // Devuelve el emoji correspondiente a la prioridad
   public priorityEmoji(priority: 'high' | 'medium' | 'low'): string {
     switch (priority) {
       case 'high':
@@ -204,5 +204,26 @@ export class TaskManagerComponent {
       default:
         return '';
     }
+  }
+
+  public setReminder(task: Task) {
+    if (this.currentTask && this.currentTask.id === task.id) {
+      console.log('Reminder already set for task:', task.title);
+      return;
+    }
+    this.currentTask = task;
+    // Send IPC message to Electron main process with current task info
+    if ((window as any).electronAPI && (window as any).electronAPI.sendCurrentTask) {
+      (window as any).electronAPI.sendCurrentTask(task.title);
+    }
+    console.log('Set reminder for task:', task.title);
+  }
+
+  public stopReminder() {
+    this.currentTask = null;
+    if ((window as any).electronAPI && (window as any).electronAPI.sendStopReminder) {
+      (window as any).electronAPI.sendStopReminder();
+    }
+    console.log('Stopped reminder');
   }
 }

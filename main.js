@@ -1,5 +1,5 @@
 // main.js
-const { app, BrowserWindow, dialog, ipcMain, screen } = require("electron");
+const { app, BrowserWindow, dialog, ipcMain, screen, shell } = require("electron");
 const path = require("path");
 
 function createWindow() {
@@ -44,6 +44,24 @@ function createWindow() {
       );
     });
   }
+
+  // Handle external links - open in default browser
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      shell.openExternal(url);
+      return { action: 'deny' };
+    }
+    return { action: 'allow' };
+  });
+
+  // Prevent navigation to external URLs within the app
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    const appUrl = isDev ? 'http://localhost:64300' : 'file://';
+    if (!url.startsWith(appUrl)) {
+      event.preventDefault();
+      shell.openExternal(url);
+    }
+  });
 }
 
 let reminderWin = null;
